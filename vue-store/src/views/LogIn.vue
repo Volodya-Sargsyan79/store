@@ -34,60 +34,74 @@
   </template>
   
   <script>
-  import axios from 'axios'
-  
-  export default {
-    name: 'LogIn',
-    data() {
-      return {
-        username: '',
-        password: '',
-        errors: []
+import axios from 'axios'
+
+export default {
+  name: 'LogIn',
+  data() {
+    return {
+      username: '',
+      password: '',
+      errors: []
+    }
+  },
+  methods: {
+    async submitForm() {
+      // Clear previous authorization and token
+      axios.defaults.headers.common["Authorization"] = ""
+      localStorage.removeItem('token')
+      this.errors = []
+
+      const formData = {
+        username: this.username,
+        password: this.password
       }
-    },
-    methods: {
-      submitForm() {
-        // Clear previous authorization and token
-        axios.defaults.headers.common["Authorization"] = ""
-        localStorage.removeItem('token')
-  
-        const formData = {
-          username: this.username,
-          password: this.password
-        }
-  
+
+      try {
         // Send login request
-        axios.post("/api/v1/token/login/", formData)
-          .then(response => {
-            const token = response.data.auth_token
-  
-            // Save token and set authorization header
-            this.$store.commit('setToken', token)
-            axios.defaults.headers.common["Authorization"] = "Token " + token
-            localStorage.setItem("token", token)
-  
-            // Redirect to admin user page
-            this.$router.push('/adminuser')
-            
-          })
-          .catch(error => {
-            // Handle errors
-            this.errors = []
-            if (error.response) {
-              for (const property in error.response.data) {
-                this.errors.push(`${property}: ${error.response.data[property]}`)
-              }
-              console.log(JSON.stringify(error.response.data))
-            } else if (error.message) {
-              console.log(JSON.stringify(error.message))
-            } else {
-              console.log(JSON.stringify(error))
-            }
-          })
+        const loginResponse = await axios.post("/api/v1/token/login/", formData)
+        const token = loginResponse.data.auth_token
+
+        // Save token and set authorization header
+        this.$store.commit('setToken', token)
+        axios.defaults.headers.common["Authorization"] = "Token " + token
+        localStorage.setItem("token", token)
+
+        // Retrieve user data
+        const userResponse = await axios.get(`/api/v1/users/${this.username}`, {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        })
+
+        // Redirect or handle successful login
+        if (userResponse.data.is_admin) {
+          this.$store.commit('setUser', userResponse.data);
+          this.$router.push('/adminuser');
+        } else {
+          this.$store.commit('setUser', userResponse.data);
+          this.$router.push('/store-owner');
+        }
+
+      } catch (error) {
+        // Handle errors
+        if (error.response) {
+          for (const property in error.response.data) {
+            this.errors.push(`${property}: ${error.response.data[property]}`)
+          }
+          console.log(JSON.stringify(error.response.data))
+        } else if (error.message) {
+          this.errors.push(error.message)
+          console.log(JSON.stringify(error.message))
+        } else {
+          this.errors.push("An unknown error occurred")
+          console.log(JSON.stringify(error))
+        }
       }
     }
   }
-  </script>
+}
+</script>
   
   <style scoped>
   .v-card-title {

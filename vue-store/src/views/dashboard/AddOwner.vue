@@ -45,8 +45,6 @@
                 class="custom-checkbox"
               ></v-checkbox>
               <v-checkbox
-              opacity-100
-              style="opacity: 100 !important;"
                 label="Store Owner"
                 v-model="is_store_owner"
               ></v-checkbox>
@@ -72,78 +70,74 @@
   </v-container>
 </template>
   
-  <script>
+<script>
   import axios from 'axios'
 
   export default {
-      name: 'AddOwner',
-      data() {
-          return {
-              username: '',
-              email: '',
-              password1: '',
-              password2: '',
-              is_admin: false,
-              is_store_owner: false,
-              errors: []
-              
+    name: 'AddOwner',
+    data() {
+        return {
+            username: '',
+            email: '',
+            password1: '',
+            password2: '',
+            is_admin: false,
+            is_store_owner: false,
+            errors: []
+            
+        }
+    },
+    methods: {
+      submitForm() {
+        this.errors = []
+
+        if (this.username === '') {
+            this.errors.push('The username is missing')
+        }
+
+        if (this.email === '') {
+            this.errors.push('The email is missing')
+        }
+
+        if (this.password1 === '') {
+            this.errors.push('The password is too short')
+        }
+
+        if (this.password1 !== this.password2) {
+            this.errors.push('The passwords are not matching')
+        }
+
+        if (!this.errors.length) {
+          const formData = {
+              username: this.username,
+              email: this.email,
+              password: this.password1,
+              is_admin: this.is_admin,
+              is_store_owner: this.is_store_owner
           }
-      },
-      methods: {
-          submitForm() {
-              this.errors = []
 
-              if (this.username === '') {
-                  this.errors.push('The username is missing')
-              }
-
-              if (this.email === '') {
-                  this.errors.push('The email is missing')
-              }
-
-              if (this.password1 === '') {
-                  this.errors.push('The password is too short')
-              }
-
-              if (this.password1 !== this.password2) {
-                  this.errors.push('The passwords are not matching')
-              }
-
-              if (!this.errors.length) {
-                  const formData = {
-                      username: this.username,
-                      email: this.email,
-                      password: this.password1,
-                      is_admin: this.is_admin,
-                      is_store_owner: this.is_store_owner
+          axios
+            .post('/api/v1/users/add-store-owner/', formData)
+            .then(response => {
+                this.$router.push('/adminuser')
+            })
+            .catch(error => {
+              if (error.response) {
+                  for (const property in error.response.data) {
+                      this.errors.push(`${property}: ${error.response.data[property]}`)
                   }
-
-                  axios
-                      .post('/api/v1/users/', formData)
-                      .then(response => {
-                          toast({
-                              message: 'Account was created',
-                              type: 'is-success',
-                              dismissible: true,
-                              pauseOnHover: true,
-                              duration: 2000,
-                              position: 'bottom-right',
-                          })
-
-                          this.$router.push('/adminuser')
-                      })
-                      .catch(error => {
-                          if (error.response) {
-                              for (const property in error.response.data) {
-                                  this.errors.push(`${property}: ${error.response.data[property]}`)
-                              }
-                          } else if (error.message) {
-                              this.errors.push('Something went wrong. Please try again!')
-                          }
-                      })
+                  console.log('Error response:', error.response)  // Log the error response
+              } else if (error.message) {
+                  console.log('Error message:', error.message)    // Log the error message
+                  this.errors.push('Something went wrong. Please try again!')
+              } else {
+                  console.log('Error:', error)  // Log the entire error object
+                  this.errors.push('Something went wrong. Please try again!')
               }
-          }
+            })
+        }
       }
+    }
   }
 </script>
 

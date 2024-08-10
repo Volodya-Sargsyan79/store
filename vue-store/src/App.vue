@@ -6,13 +6,10 @@
       <v-spacer></v-spacer>
 
       <template v-if="$store.state.isAuthenticated">
-        <v-btn v-if="$store.state.userRole === 'admin'" to="/adminuser" text>Admin</v-btn>
-        <v-btn v-else to="/adminuser" text>Store Owner</v-btn>
         <v-btn text @click="logout">Log out</v-btn>
       </template>
 
       <template v-else>
-        <v-btn to="/" text>Home</v-btn>
         <v-btn to="/log-in" text>Log in</v-btn>
       </template>
     </v-app-bar>

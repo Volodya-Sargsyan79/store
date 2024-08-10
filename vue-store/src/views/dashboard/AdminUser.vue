@@ -12,7 +12,7 @@
   
           <v-btn color="primary" :to="{ name: 'AddOwner' }">Add store owner</v-btn>
   
-          <v-form>
+          <v-form @submit.prevent="submitForm">
             <v-row>
               <v-col cols="12" md="4">
                 <v-text-field
@@ -23,15 +23,17 @@
                 />
               </v-col>
               <v-col cols="12" md="2">
-                <v-btn color="success" @click="performSearch">Search</v-btn>
+                <v-btn type="submit" color="success">Search</v-btn>
+              </v-col>
+              <v-col cols="12" md="2">
+                <v-btn type="button" @click="clearFilter"  color="success">Cancle</v-btn>
               </v-col>
             </v-row>
           </v-form>
   
           <v-data-table
             :headers="headers"
-            :items="owners"
-            item-key="id"
+            :items="displayedOwners"
             class="elevation-1"
           >
             <template v-slot:item.type="{ item }">
@@ -49,8 +51,9 @@ export default {
   name: "AdminUser",
   data() {
     return {
-        search:'',
+      search:'',
       owners: [],
+      filter: [],
       headers: [
         { text: 'Username', value: 'username' },
         { text: 'Email', value: 'email' },
@@ -59,6 +62,12 @@ export default {
 
     };
   },
+  computed: {
+    displayedOwners() {
+      // If filter has a value, use it; otherwise, use owners
+      return this.filter && Object.keys(this.filter).length ? [this.filter] : this.owners;
+    }
+  },
   mounted() {
     this.getUser();
   },
@@ -66,7 +75,7 @@ export default {
     async getUser() {
       const token = localStorage.getItem("token");
       try {
-        const response = await axios.get("/api/v1/owners/", {
+        const response = await axios.get("/api/v1/users/", {
           headers: {
             Authorization: `Token ${token}`,
           },
@@ -76,6 +85,22 @@ export default {
         console.log(error.response || error);
       }
     },
+    async submitForm() {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await axios.get(`/api/v1/users/${this.search}`, {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        });
+        this.filter = response.data;
+      } catch (error) {
+        console.log(error.response || error);
+      }
+    },
+    clearFilter() {
+      this.filter = []
+    }
   },
 };
 </script>
