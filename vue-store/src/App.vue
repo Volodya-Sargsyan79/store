@@ -18,61 +18,58 @@
       <router-view />
     </v-main>
 
-    <v-footer app>
+    <v-footer >
       <v-col class="text-center">Copyright (c) 2024</v-col>
     </v-footer>
   </v-app>
 </template>
 
 <script>
-import TopBar from './components/TopBar.vue'
-import axios from "axios"
+import TopBar from "./components/TopBar.vue";
+import axios from "axios";
 
 export default {
-  name: 'App',
-  components:{
-    TopBar
-  }, 
+  name: "App",
+  components: {
+    TopBar,
+  },
   mounted() {
-    // this.getUser()
   },
   beforeCreate() {
-    this.$store.commit('initializeStore')
+    this.$store.commit("initializeStore");
 
-    const token = this.$store.state.token
+    const token = this.$store.state.token;
 
     if (token) {
-      axios.defaults.headers.common['Authorization'] = "Token " + token
+      axios.defaults.headers.common["Authorization"] = "Token " + token;
     } else {
-      axios.defaults.headers.common['Authorization'] = ""
+      axios.defaults.headers.common["Authorization"] = "";
     }
   },
   methods: {
     logout() {
       axios
         .post("/api/v1/token/logout/")
-        .then(response => {
-          axios.defaults.headers.common["Authorization"] = ""
+        .then((response) => {
+          axios.defaults.headers.common["Authorization"] = "";
 
-          localStorage.removeItem("token")
+          localStorage.removeItem("token");
 
-          this.$store.commit('removeToken')
+          this.$store.commit("removeToken");
 
-          this.$router.push('/')
+          this.$router.push("/");
         })
-        .catch(error => {
-          console.error("Logout error:", error)
+        .catch((error) => {
+          console.error("Logout error:", error);
           if (error.response && error.response.status === 401) {
-            // Handle 401 error specifically
-            this.$router.push('/log-in')
+            this.$router.push("/log-in");
           } else {
-            // Handle other errors
-            alert("An error occurred during logout.")
+            alert("An error occurred during logout.");
           }
-        })
-    }
-  }
-}
+        });
+    },
+  },
+};
 </script>
 
 <style scoped>
